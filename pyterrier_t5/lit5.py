@@ -5,7 +5,7 @@ import re
 from transformers import T5Tokenizer
 from pyterrier_t5.modeling_fid import FiD
 import pyterrier as pt
-
+from tqdm.auto import tqdm
 
 def _iter_windows(n, window_size, stride):
     # TODO: validate window_size and stride
@@ -17,7 +17,6 @@ def _iter_windows(n, window_size, stride):
         if start_idx == 0 or window_len > stride:
             yield start_idx, end_idx, window_len
 
-
 class LiT5(pt.Transformer):
     def __init__(self, model_path='castorini/LiT5-Distill-large', batch_size=16, verbose=True, bfloat16=None, window_size=20, stride=10, passes=1):
         self.tokenizer = T5Tokenizer.from_pretrained(model_path, return_dict=False, legacy=False, use_fast=True)
@@ -26,12 +25,12 @@ class LiT5(pt.Transformer):
         self.model.encoder.config.batch_size = batch_size
         if bfloat16 is None:
             try:
-                self.model = model.bfloat16()
+                self.model = self.model.bfloat16()
                 bfloat16 = True
             except:
                 bfloat16 = False
         elif bfloat16:
-            self.model = model.bfloat16()
+            self.model = self.model.bfloat16()
         self.bfloat16 = bfloat16
         self.passes = passes
         self.window_size = window_size
